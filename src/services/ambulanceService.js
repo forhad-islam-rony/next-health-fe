@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+import { BASE_URL } from '../config';
+
+const API_URL = BASE_URL;
 
 console.log("--------------------------------------");
 console.log('API URL:', API_URL);

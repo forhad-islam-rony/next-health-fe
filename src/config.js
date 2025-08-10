@@ -17,7 +17,7 @@
  * fetch(`${BASE_URL}/auth/login`, { ... })
  * // Results in: http://localhost:5000/api/v1/auth/login
  */
-export const BASE_URL = 'http://localhost:5000/api/v1';
+export const BASE_URL = 'https://nexthealth.onrender.com/api/v1';
 
 /**
  * Authentication token retrieved from browser's local storage

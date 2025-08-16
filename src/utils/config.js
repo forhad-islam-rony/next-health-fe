@@ -1,1 +1,1 @@
-export const BASE_URL =  "http://https://nexthealth.onrender.com/api/v1:5000/api/v1";
+export const BASE_URL =  "http://https://nexthealth.onrender.com/api/v1";

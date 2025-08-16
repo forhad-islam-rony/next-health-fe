@@ -12,6 +12,8 @@ import ChatInterface from '../components/ChatInterface.jsx';
 import FileUploader from '../components/FileUploader.jsx';
 import axios from 'axios';
 import useScrollToTop from '../hooks/useScrollToTop';
+const CLOUD_NAME = import.meta.env.VITE_CLOUD_NAME;
+const UPLOAD_PRESET = import.meta.env.VITE_UPLOAD_PRESET;
 
 /**
  * Medical AI Chatbot component for healthcare consultations
@@ -308,61 +310,51 @@ function MedicalChatbot() {
    * @description Uploads medical documents (PDFs, images) for AI analysis
    * and adds results to chat interface
    */
-  const handleFileUpload = async (file) => {
-    // Validate active session
-    if (!sessionId) {
-      throw new Error('No active chat session. Please start a new conversation.');
-    }
+  // ...existing code...
+const handleFileUpload = async (file) => {
+  if (!sessionId) throw new Error('No active chat session. Please start a new conversation.');
+  setUploading(true);
 
-    // Show upload progress state
-    setUploading(true);
+  try {
+    // 1. Upload to Cloudinary
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
 
-    try {
-      // Prepare file upload data
-      const formData = new FormData();
-      formData.append('file', file);         // Medical document
-      formData.append('sessionId', sessionId); // Current session
+    const cloudinaryRes = await axios.post(cloudinaryUrl, formData);
 
-      // Upload file to backend for analysis
-      const response = await axios.post(
-        'http://localhost:5000/api/v1/chatbot/upload',
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
+    // 2. Send Cloudinary URL to backend for analysis
+    const response = await api.post('/chatbot/upload', {
+      sessionId,
+      fileUrl: cloudinaryRes.data.secure_url,
+      fileType: file.type
+    });
 
-      // Add upload confirmation message
-      const uploadMessage = {
+    // 3. Add messages to chat
+    setMessages(prev => [
+      ...prev,
+      {
         role: 'system',
-        content: `📄 Medical document uploaded: ${response.data.fileName}`,
+        content: `📄 Medical document uploaded: ${file.name}`,
         timestamp: new Date(),
         messageType: 'text'
-      };
-
-      // Add AI analysis results
-      const analysisMessage = {
+      },
+      {
         role: 'assistant',
         content: `📊 **Medical Document Analysis**\n\n${response.data.analysis}`,
         timestamp: new Date(),
-        messageType: 'file_analysis'  // Special type for document analysis
-      };
-
-      // Update chat with upload and analysis messages
-      setMessages(prev => [...prev, uploadMessage, analysisMessage]);
-
-    } catch (error) {
-      // Handle upload/analysis errors
-      console.error('Error uploading file:', error);
-      throw new Error(error.response?.data?.message || 'Failed to upload and analyze document');
-    } finally {
-      // Reset upload state
-      setUploading(false);
-    }
-  };
+        messageType: 'file_analysis'
+      }
+    ]);
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw new Error(error.response?.data?.message || 'Failed to upload and analyze document');
+  } finally {
+    setUploading(false);
+  }
+};
+// ...existing code...
 
   /**
    * Format date for user-friendly display

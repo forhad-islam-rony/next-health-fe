@@ -50,7 +50,7 @@ function MedicalChatbot() {
   
   // Configure axios instance with authentication
   const api = axios.create({
-    baseURL: 'http://localhost:5000/api/v1',  // Backend API URL
+    baseURL: 'https://nexthealth.onrender.com/api/v1',  // Backend API URL
     headers: {
       'Authorization': `Bearer ${token}`,      // JWT authentication
       'Content-Type': 'application/json'       // Default content type
